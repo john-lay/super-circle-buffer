@@ -1,0 +1,66 @@
+.icon {
+    width: 32px;
+    height: 32px;
+    background-image: url('scrolling-input-icons-32.png');
+    margin: 6px;
+}
+
+.credit {
+    background-position-y: 32px;
+}
+
+.hk {
+    background-position-y: 64px;
+}
+
+.mk {
+    background-position-y: 96px;
+}
+
+.lk {
+    background-position-y: 128px;
+}
+
+.hp {
+    background-position-y: 160px;
+}
+
+.mp {
+    background-position-y: 192px;
+}
+
+.lp {
+    background-position-y: 224px;
+}
+
+.dr {
+    background-position-y: 256px;
+}
+
+.dl {
+    background-position-y: 288px;
+}
+
+.ur {
+    background-position-y: 320px;
+}
+
+.ul {
+    background-position-y: 352px;
+}
+
+.d {
+    background-position-y: 384px;
+}
+
+.u {
+    background-position-y: 416px;
+}
+
+.r {
+    background-position-y: 448px;
+}
+
+.l {
+    background-position-y: 480px;
+}
