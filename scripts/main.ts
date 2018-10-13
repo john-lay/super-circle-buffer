@@ -7,7 +7,6 @@ var downPressed = false;
 // var UP_KEY = 38;
 var FORWARD_KEY = 39;
 var DOWN_KEY = 40;
-
 var inputBuffer: number[] = [];
 
 // using japanese street fighter notation for direction
