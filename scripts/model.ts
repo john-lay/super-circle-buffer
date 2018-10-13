@@ -1,10 +1,12 @@
 export interface IDirection {
-    name: string;
+    alias: string;
     notation: number;
 }
 
 export interface IDirections {
     down: IDirection,
     downForward: IDirection,
-    forward: IDirection
+    forward: IDirection,
+
+    jab: IDirection
 }

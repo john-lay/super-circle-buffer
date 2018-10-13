@@ -7,14 +7,17 @@ var downPressed = false;
 // var UP_KEY = 38;
 var FORWARD_KEY = 39;
 var DOWN_KEY = 40;
+var JAB_KEY = 100;
 var inputBuffer: number[] = [];
 
 // using japanese street fighter notation for direction
 // https://sonichurricane.com/articles/sfnotation.html
 var direction: IDirections = {
-    down: { name: 'd', notation: 2 },
-    downForward: { name: 'dr', notation: 3 },
-    forward: { name: 'r', notation: 6 }
+    down: { alias: 'd', notation: 2 },
+    downForward: { alias: 'dr', notation: 3 },
+    forward: { alias: 'r', notation: 6 },
+
+    jab: { alias: 'lp', notation: 10 }
 }
 
 document.onkeydown = function(e) {
@@ -48,6 +51,12 @@ document.onkeyup = function(e) {
 
         if(downPressed) addInput(direction.downForward);
     }
+
+    // only add attack keys on key up
+    // TODO: find out how to handle negative edge
+    if(e.keyCode === JAB_KEY) {
+        addInput(direction.jab);
+    }
 }
 
 function addInput(direction: IDirection) {
@@ -58,7 +67,7 @@ function addInput(direction: IDirection) {
     checkBuffer();
     
     // update UI
-    drawInput(direction.name);
+    drawInput(direction.alias);
 }
 
 function drawInput(directionName: string) {
@@ -70,12 +79,13 @@ function drawInput(directionName: string) {
 
 function checkBuffer() {
     for(var i=0; i<inputBuffer.length; i++) {
-        // check for 3 direction special moves
-        if(i+2 <= inputBuffer.length) {
+        // check for 4 input special moves 
+        if(i+3 <= inputBuffer.length) {
             if(inputBuffer[i] === direction.down.notation &&
                inputBuffer[i+1] === direction.downForward.notation &&
-               inputBuffer[i+2] === direction.forward.notation) {
-                    console.log('Hadoken!');
+               inputBuffer[i+2] === direction.forward.notation &&
+               inputBuffer[i+3] === direction.jab.notation) {
+                    console.log('(Jab) Hadoken!');
                 }
         }
     }
