@@ -1,9 +1,9 @@
-var rightPressed = false;
+var forwardPressed = false;
 var downPressed = false;
 
-// var LEFT_KEY = 37;
+// var BACK_KEY = 37;
 // var UP_KEY = 38;
-var RIGHT_KEY = 39;
+var FORWARD_KEY = 39;
 var DOWN_KEY = 40;
 
 var inputBuffer = [];
@@ -12,8 +12,8 @@ var inputBuffer = [];
 // https://sonichurricane.com/articles/sfnotation.html
 var direction = {
     down: { name: 'd', notation: 2 },
-    downRight: { name: 'dr', notation: 3 },
-    right: { name: 'r', notation: 6 }
+    downForward: { name: 'dr', notation: 3 },
+    forward: { name: 'r', notation: 6 }
 }
 
 document.onkeydown = function(e) {
@@ -21,8 +21,8 @@ document.onkeydown = function(e) {
     console.log("key down = ", e.keyCode);
 
     switch(e.keyCode) {
-        case RIGHT_KEY: 
-            rightPressed = true;
+        case FORWARD_KEY: 
+            forwardPressed = true;
         break;
         case DOWN_KEY: 
             downPressed = true;
@@ -38,14 +38,14 @@ document.onkeyup = function(e) {
         downPressed = false;
         addInput(direction.down);
 
-        if(rightPressed) addInput(direction.downRight);        
+        if(forwardPressed) addInput(direction.downForward);        
     }
 
-    if(e.keyCode === RIGHT_KEY) {
-        rightPressed = false;
-        addInput(direction.right);
+    if(e.keyCode === FORWARD_KEY) {
+        forwardPressed = false;
+        addInput(direction.forward);
 
-        if(downPressed) addInput(direction.downRight);
+        if(downPressed) addInput(direction.downForward);
     }
 }
 
@@ -72,8 +72,8 @@ function checkBuffer() {
         // check for 3 direction special moves
         if(i+2 <= inputBuffer.length) {
             if(inputBuffer[i] === direction.down.notation &&
-               inputBuffer[i+1] === direction.downRight.notation &&
-               inputBuffer[i+2] === direction.right.notation) {
+               inputBuffer[i+1] === direction.downForward.notation &&
+               inputBuffer[i+2] === direction.forward.notation) {
                     console.log('Hadoken!');
                 }
         }
