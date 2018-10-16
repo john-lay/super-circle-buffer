@@ -10,3 +10,8 @@ export interface IDirections {
 
     jab: IDirection
 }
+
+export interface IInput {
+    notation: number;
+    frame: number;
+}

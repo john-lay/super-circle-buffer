@@ -1,5 +1,7 @@
-import { IDirections, IDirection } from "./model";
+import { IDirections, IDirection, IInput } from "./model";
 
+var fps = 60;
+var frameCount = 0;
 var forwardPressed = false;
 var downPressed = false;
 
@@ -8,7 +10,8 @@ var downPressed = false;
 var FORWARD_KEY = 39;
 var DOWN_KEY = 40;
 var JAB_KEY = 100;
-var inputBuffer: number[] = [];
+var inputBuffer: IInput[] = [];
+var container: HTMLElement = document.getElementById("Container");
 
 // using japanese street fighter notation for direction
 // https://sonichurricane.com/articles/sfnotation.html
@@ -61,8 +64,8 @@ document.onkeyup = function(e) {
 
 function addInput(direction: IDirection) {
     // update buffer
-    inputBuffer.push(direction.notation);
-    
+    inputBuffer.push({notation: direction.notation, frame: frameCount});
+    console.log(inputBuffer);
     // check for special moves
     checkBuffer();
     
@@ -74,19 +77,30 @@ function drawInput(directionName: string) {
     var node = document.createElement("div");
     node.className = "icon " + directionName;
 
-    document.getElementById("Container").appendChild(node);
+    container.appendChild(node);
 }
 
 function checkBuffer() {
     for(var i=0; i<inputBuffer.length; i++) {
         // check for 4 input special moves 
-        if(i+3 <= inputBuffer.length) {
-            if(inputBuffer[i] === direction.down.notation &&
-               inputBuffer[i+1] === direction.downForward.notation &&
-               inputBuffer[i+2] === direction.forward.notation &&
-               inputBuffer[i+3] === direction.jab.notation) {
-                    console.log('(Jab) Hadoken!');
+        if(i+3 < inputBuffer.length) {
+            if(inputBuffer[i].notation === direction.down.notation &&
+               inputBuffer[i+1].notation === direction.downForward.notation && (inputBuffer[i+1].frame - inputBuffer[i].frame) <= 6 &&
+               inputBuffer[i+2].notation === direction.forward.notation && (inputBuffer[i+2].frame - inputBuffer[i+1].frame) <= 6 &&
+               inputBuffer[i+3].notation === direction.jab.notation && (inputBuffer[i+3].frame - inputBuffer[i+2].frame) <= 6) {
+                    console.log('(Jab) Hadoken!'); 
+                    flushBuffer();
                 }
         }
     }
 }
+
+function flushBuffer() {
+    inputBuffer = [];
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+}
+
+// increment framecount every 1/60th of a second (assuming 60fps)
+setInterval(() => {frameCount++;}, 1000 / fps);
