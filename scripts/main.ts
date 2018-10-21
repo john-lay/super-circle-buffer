@@ -83,6 +83,12 @@ import { IDirections, IDirection, IInput } from "./model";
         }
     }
 
+    /**
+     * Add's a direction to the input buffer and calls 2 subsequent methods:
+     * checkBuffer and drawBuffer
+     * 
+     * @param direction Indicate which direction to add
+     */
     var addInput = (direction: IDirection) => {
         // update buffer
         inputBuffer.push({ notation: direction.notation, frame: frameCount });
@@ -94,6 +100,11 @@ import { IDirections, IDirection, IInput } from "./model";
         drawInput(direction.alias);
     }
 
+    /**
+     * Creates a HTML element with a css class representing the input
+     * 
+     * @param directionName Indicate which direction to draw
+     */
     var drawInput = (directionName: string) => {
         var node = document.createElement("div");
         node.className = "icon " + directionName;
@@ -101,6 +112,9 @@ import { IDirections, IDirection, IInput } from "./model";
         container.appendChild(node);
     }
 
+    /**
+     * Iterate over the input buffer and look for special moves
+     */
     var checkBuffer = () => {
         for (var i = 0; i < inputBuffer.length; i++) {
             checkForFireball(i);
@@ -109,6 +123,9 @@ import { IDirections, IDirection, IInput } from "./model";
         }
     }
 
+    /**
+     * Reset the input buffer and clear the visual representation from the DOM
+     */
     var flushBuffer = () => {
         inputBuffer = [];
         while (container.firstChild) {
@@ -125,6 +142,8 @@ import { IDirections, IDirection, IInput } from "./model";
      *    frames of down-forwards AND
      * 4. The fourth input must be jab AND jab must be pressed within 6 frames 
      *    of forwards
+     *
+     * @param i Indicates the index of the input buffer
      */
     var checkForFireball = (i: number) => {
         // check for 4 input special moves 
@@ -149,6 +168,8 @@ import { IDirections, IDirection, IInput } from "./model";
      *    the back being released and the forward input AND
      * 4. The first input after the forwards must be a jab AND jab must be pressed
      *    within 6 frames of forwards
+     *
+     * @param i Indicates the index of the input buffer
      */
     var checkForSonicBoom = (i: number) => {
         // check for charge special moves
@@ -175,7 +196,8 @@ import { IDirections, IDirection, IInput } from "./model";
      * later games (i.e. Street Fighter IV) you cannot press a combination of 
      * punches. Also the frame leniency was guessed based on experience. I believe
      * The strong and fierce versions of the same move, require tighter input.
-     *  
+     * 
+     * @param i Indicates the index of the input buffer
      */
     var checkForHundredHandSlap = (i: number) => {
         // check for rapid fire special moves
