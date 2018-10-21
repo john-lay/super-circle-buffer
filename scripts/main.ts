@@ -33,7 +33,7 @@ import { IDirections, IDirection, IInput } from "./model";
 
     document.onkeydown = (e) => {
         (<any>e) = e || window.event;
-        console.log("key down = ", e.keyCode);
+        //console.log("key down = ", e.keyCode);
 
         if (e.keyCode === BACK_KEY && !backPressed) {
             backPressed = true;
@@ -51,7 +51,7 @@ import { IDirections, IDirection, IInput } from "./model";
 
     document.onkeyup = (e) => {
         (<any>e) = e || window.event;
-        console.log("key up = ", e.keyCode);
+        //console.log("key up = ", e.keyCode);
 
         if (e.keyCode === DOWN_KEY) {
             downPressed = false;
@@ -63,7 +63,7 @@ import { IDirections, IDirection, IInput } from "./model";
         if (e.keyCode === BACK_KEY) {
             backPressed = false;
             backChargeEndAt = frameCount;
-            console.log("back charged for = ", backChargeEndAt - backChargeStartAt);
+            //console.log("back charged for = ", backChargeEndAt - backChargeStartAt);
             addInput(direction.back);
 
             if (downPressed) addInput(direction.downForward);
@@ -86,7 +86,7 @@ import { IDirections, IDirection, IInput } from "./model";
     var addInput = (direction: IDirection) => {
         // update buffer
         inputBuffer.push({ notation: direction.notation, frame: frameCount });
-        console.log(inputBuffer);
+
         // check for special moves
         checkBuffer();
 
@@ -103,69 +103,9 @@ import { IDirections, IDirection, IInput } from "./model";
 
     var checkBuffer = () => {
         for (var i = 0; i < inputBuffer.length; i++) {
-            // check for 4 input special moves 
-            if (i + 3 < inputBuffer.length) {
-                /**
-                 * To produce the jab hadoken:
-                 * 1. The first input must be down AND
-                 * 2. The second input must be down-forwards AND down-forwards must be pressed within 6 frames of down AND
-                 * 3. The third input must be forwards AND forwards must be pressed within 6 frames of down-forwards AND
-                 * 4. The fourth input must be jab AND jab must be pressed within 6 frames of forwards
-                 */
-                if (inputBuffer[i].notation === direction.down.notation &&
-                    inputBuffer[i + 1].notation === direction.downForward.notation && (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 6 &&
-                    inputBuffer[i + 2].notation === direction.forward.notation && (inputBuffer[i + 2].frame - inputBuffer[i + 1].frame) <= 6 &&
-                    inputBuffer[i + 3].notation === direction.jab.notation && (inputBuffer[i + 3].frame - inputBuffer[i + 2].frame) <= 6) {
-                    console.log('(Jab) Hadoken!');
-                    flushBuffer();
-                }
-            }
-
-            // check for charge special moves
-            if (i + 1 < inputBuffer.length) {
-                /**
-                 * To produce the jab sonic boom:
-                 * 1. The first input must be back AND
-                 * 2. The time between holding and releasing back must be at least 1 second. As we set fps (to 60), this can be used as our unit representing a second AND
-                 * 3. There must be at least 1 frame and no more than 7 (inclusive) frames between the back being released and the forward input AND
-                 * 4. The first input after the forwards must be a jab AND jab must be pressed within 6 frames of forwards
-                 */
-                if (backChargeEndAt - backChargeStartAt >= fps &&
-                    inputBuffer[i].notation === direction.forward.notation &&
-                    inputBuffer[i].frame - backChargeEndAt > 0 && // wait at least 1 frame after charging 
-                    inputBuffer[i].frame - backChargeEndAt <= 7 && // but no more than 7 frames
-                    inputBuffer[i + 1].notation === direction.jab.notation &&
-                    (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 11) { // 11 frame window for jab sonic boom
-                    console.log('(Jab) sonic boom!');
-                    flushBuffer();
-                }
-            }
-
-            // check for rapid fire special moves
-            if (i + 4 < inputBuffer.length) {
-                /**
-                 * To produce the jab hundred hand slap:
-                 * 1. Input 5 consecutive jabs AND
-                 * 2. Each consecutive jab must be pressed within 11 frames of the previous one.
-                 * 
-                 * note: I struggled to find documentation to support this logic, unlike in
-                 * later games (i.e. Street Fighter IV) you cannot press a combination of 
-                 * punches. Also the frame leniency was guessed based on experience. I believe
-                 * The strong and fierce versions of the same move, require tighter input.       * 
-                 */
-                if (inputBuffer[i].notation === direction.jab.notation &&
-                    inputBuffer[i + 1].notation === direction.jab.notation &&
-                    (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 11 &&
-                    inputBuffer[i + 2].notation === direction.jab.notation &&
-                    (inputBuffer[i + 2].frame - inputBuffer[i + 1].frame) <= 11 &&
-                    inputBuffer[i + 3].notation === direction.jab.notation &&
-                    (inputBuffer[i + 3].frame - inputBuffer[i + 2].frame) <= 11 &&
-                    inputBuffer[i + 4].notation === direction.jab.notation &&
-                    (inputBuffer[i + 4].frame - inputBuffer[i + 3].frame) <= 11) {
-                        console.log('(Jab) Hundred Hand Slap!');
-                        flushBuffer();
-                }
-            }
+            checkForFireball(i);
+            checkForSonicBoom(i);
+            checkForHundredHandSlap(i);
         }
     }
 
@@ -173,6 +113,86 @@ import { IDirections, IDirection, IInput } from "./model";
         inputBuffer = [];
         while (container.firstChild) {
             container.removeChild(container.firstChild);
+        }
+    }
+
+    /**
+     * To produce the jab hadoken:
+     * 1. The first input must be down AND
+     * 2. The second input must be down-forwards AND down-forwards must be pressed 
+     *    within 6 frames of down AND
+     * 3. The third input must be forwards AND forwards must be pressed within 6 
+     *    frames of down-forwards AND
+     * 4. The fourth input must be jab AND jab must be pressed within 6 frames 
+     *    of forwards
+     */
+    var checkForFireball = (i: number) => {
+        // check for 4 input special moves 
+        if (i + 3 < inputBuffer.length) {
+
+            if (inputBuffer[i].notation === direction.down.notation &&
+                inputBuffer[i + 1].notation === direction.downForward.notation && (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 6 &&
+                inputBuffer[i + 2].notation === direction.forward.notation && (inputBuffer[i + 2].frame - inputBuffer[i + 1].frame) <= 6 &&
+                inputBuffer[i + 3].notation === direction.jab.notation && (inputBuffer[i + 3].frame - inputBuffer[i + 2].frame) <= 6) {
+                console.log('(Jab) Hadoken!');
+                flushBuffer();
+            }
+        }
+    }
+    
+    /**
+     * To produce the jab sonic boom:
+     * 1. The first input must be back AND
+     * 2. The time between holding and releasing back must be at least 1 second. 
+     *    As we set fps (to 60), this can be used as our unit representing a second AND
+     * 3. There must be at least 1 frame and no more than 7 (inclusive) frames between 
+     *    the back being released and the forward input AND
+     * 4. The first input after the forwards must be a jab AND jab must be pressed
+     *    within 6 frames of forwards
+     */
+    var checkForSonicBoom = (i: number) => {
+        // check for charge special moves
+        if (i + 1 < inputBuffer.length) {
+           
+            if (backChargeEndAt - backChargeStartAt >= fps &&
+                inputBuffer[i].notation === direction.forward.notation &&
+                inputBuffer[i].frame - backChargeEndAt > 0 && // wait at least 1 frame after charging 
+                inputBuffer[i].frame - backChargeEndAt <= 7 && // but no more than 7 frames
+                inputBuffer[i + 1].notation === direction.jab.notation &&
+                (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 11) { // 11 frame window for jab sonic boom
+                console.log('(Jab) sonic boom!');
+                flushBuffer();
+            }
+        }
+    }
+
+    /**
+     * To produce the jab hundred hand slap:
+     * 1. Input 5 consecutive jabs AND
+     * 2. Each consecutive jab must be pressed within 11 frames of the previous one.
+     * 
+     * note: I struggled to find documentation to support this logic, unlike in
+     * later games (i.e. Street Fighter IV) you cannot press a combination of 
+     * punches. Also the frame leniency was guessed based on experience. I believe
+     * The strong and fierce versions of the same move, require tighter input.
+     *  
+     */
+    var checkForHundredHandSlap = (i: number) => {
+        // check for rapid fire special moves
+        if (i + 4 < inputBuffer.length) {
+            
+            if (inputBuffer[i].notation === direction.jab.notation &&
+                inputBuffer[i + 1].notation === direction.jab.notation &&
+                (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 11 &&
+                inputBuffer[i + 2].notation === direction.jab.notation &&
+                (inputBuffer[i + 2].frame - inputBuffer[i + 1].frame) <= 11 &&
+                inputBuffer[i + 3].notation === direction.jab.notation &&
+                (inputBuffer[i + 3].frame - inputBuffer[i + 2].frame) <= 11 &&
+                inputBuffer[i + 4].notation === direction.jab.notation &&
+                (inputBuffer[i + 4].frame - inputBuffer[i + 3].frame) <= 11) {
+                console.log('(Jab) Hundred Hand Slap!');
+                flushBuffer();
+            }
         }
     }
 
