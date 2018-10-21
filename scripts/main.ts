@@ -140,6 +140,32 @@ import { IDirections, IDirection, IInput } from "./model";
                     flushBuffer();
                 }
             }
+
+            // check for rapid fire special moves
+            if (i + 4 < inputBuffer.length) {
+                /**
+                 * To produce the jab hundred hand slap:
+                 * 1. Input 5 consecutive jabs AND
+                 * 2. Each consecutive jab must be pressed within 11 frames of the previous one.
+                 * 
+                 * note: I struggled to find documentation to support this logic, unlike in
+                 * later games (i.e. Street Fighter IV) you cannot press a combination of 
+                 * punches. Also the frame leniency was guessed based on experience. I believe
+                 * The strong and fierce versions of the same move, require tighter input.       * 
+                 */
+                if (inputBuffer[i].notation === direction.jab.notation &&
+                    inputBuffer[i + 1].notation === direction.jab.notation &&
+                    (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 11 &&
+                    inputBuffer[i + 2].notation === direction.jab.notation &&
+                    (inputBuffer[i + 2].frame - inputBuffer[i + 1].frame) <= 11 &&
+                    inputBuffer[i + 3].notation === direction.jab.notation &&
+                    (inputBuffer[i + 3].frame - inputBuffer[i + 2].frame) <= 11 &&
+                    inputBuffer[i + 4].notation === direction.jab.notation &&
+                    (inputBuffer[i + 4].frame - inputBuffer[i + 3].frame) <= 11) {
+                        console.log('(Jab) Hundred Hand Slap!');
+                        flushBuffer();
+                }
+            }
         }
     }
 
