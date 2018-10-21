@@ -7,11 +7,13 @@ import { IDirections, IDirection, IInput } from "./model";
     var backPressed = false;
     var forwardPressed = false;
     var downPressed = false;
+    var upPressed = false;
 
     var BACK_KEY = 37;
-    // var UP_KEY = 38;
+    var UP_KEY = 38;
     var FORWARD_KEY = 39;
     var DOWN_KEY = 40;
+
     var JAB_KEY = 100;
 
     var inputBuffer: IInput[] = [];
@@ -27,6 +29,8 @@ import { IDirections, IDirection, IInput } from "./model";
         downForward: { alias: 'dr', notation: 3 },
         back: { alias: 'l', notation: 4 },
         forward: { alias: 'r', notation: 6 },
+        up: { alias: 'u', notation: 8 },
+        upForward: { alias: 'ur', notation: 9 },
 
         jab: { alias: 'lp', notation: 10 }
     }
@@ -47,6 +51,10 @@ import { IDirections, IDirection, IInput } from "./model";
         if (e.keyCode === DOWN_KEY && !downPressed) {
             downPressed = true;
         }
+
+        if (e.keyCode === UP_KEY && !upPressed) {
+            upPressed = true;
+        }
     }
 
     document.onkeyup = (e) => {
@@ -58,6 +66,13 @@ import { IDirections, IDirection, IInput } from "./model";
             addInput(direction.down);
 
             if (forwardPressed) addInput(direction.downForward);
+        }
+
+        if (e.keyCode === UP_KEY) {
+            upPressed = false;
+            addInput(direction.up);
+
+            if (forwardPressed) addInput(direction.upForward);
         }
 
         if (e.keyCode === BACK_KEY) {
@@ -74,6 +89,7 @@ import { IDirections, IDirection, IInput } from "./model";
             addInput(direction.forward);
 
             if (downPressed) addInput(direction.downForward);
+            if (upPressed) addInput(direction.upForward);
         }
 
         // only add attack keys on key up
