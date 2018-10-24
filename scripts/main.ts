@@ -1,30 +1,31 @@
 import { IDirections, IDirection, IInput } from "./model";
 
-(() => {
-    var fps = 60;
-    var frameCount = 0;
+export class SuperCircleBuffer {
+    fps = 60;
+    frameCount = 0;
 
-    var backPressed = false;
-    var forwardPressed = false;
-    var downPressed = false;
-    var upPressed = false;
+    backPressed = false;
+    forwardPressed = false;
+    downPressed = false;
+    upPressed = false;
 
-    var BACK_KEY = 37;
-    var UP_KEY = 38;
-    var FORWARD_KEY = 39;
-    var DOWN_KEY = 40;
+    readonly BACK_KEY = 37;
+    readonly UP_KEY = 38;
+    readonly FORWARD_KEY = 39;
+    readonly DOWN_KEY = 40;
 
-    var JAB_KEY = 100;
+    readonly JAB_KEY = 100;
 
-    var inputBuffer: IInput[] = [];
-    var container: HTMLElement = document.getElementById("Container");
+    inputBuffer: IInput[] = [];
+    specialMoves: String[] = [];
+    container: HTMLElement = document.getElementById("Container");
 
-    var backChargeStartAt = 0;
-    var backChargeEndAt = 0;
+    backChargeStartAt = 0;
+    backChargeEndAt = 0;
 
     // using japanese street fighter notation for direction
     // https://sonichurricane.com/articles/sfnotation.html
-    var direction: IDirections = {
+    readonly direction: IDirections = {
         down: { alias: 'd', notation: 2 },
         downForward: { alias: 'dr', notation: 3 },
         back: { alias: 'l', notation: 4 },
@@ -35,67 +36,72 @@ import { IDirections, IDirection, IInput } from "./model";
         jab: { alias: 'lp', notation: 10 }
     }
 
-    document.onkeydown = (e) => {
+    constructor() {
+        // increment framecount every 1/60th of a second (assuming 60fps)
+        setInterval(() => { this.frameCount++; }, 1000 / this.fps);
+    }
+
+    keyup = document.onkeydown = (e) => {
         (<any>e) = e || window.event;
         //console.log("key down = ", e.keyCode);
 
-        if (e.keyCode === BACK_KEY && !backPressed) {
-            backPressed = true;
-            backChargeStartAt = frameCount;
+        if (e.keyCode === this.BACK_KEY && !this.backPressed) {
+            this.backPressed = true;
+            this.backChargeStartAt = this.frameCount;
         }
 
-        if (e.keyCode === FORWARD_KEY && !forwardPressed) {
-            forwardPressed = true;
+        if (e.keyCode === this.FORWARD_KEY && !this.forwardPressed) {
+            this.forwardPressed = true;
         }
 
-        if (e.keyCode === DOWN_KEY && !downPressed) {
-            downPressed = true;
+        if (e.keyCode === this.DOWN_KEY && !this.downPressed) {
+            this.downPressed = true;
         }
 
-        if (e.keyCode === UP_KEY && !upPressed) {
-            upPressed = true;
+        if (e.keyCode === this.UP_KEY && !this.upPressed) {
+            this.upPressed = true;
         }
     }
 
-    document.onkeyup = (e) => {
+    keydown = document.onkeyup = (e) => {
         (<any>e) = e || window.event;
         //console.log("key up = ", e.keyCode);
 
-        if (e.keyCode === DOWN_KEY) {
-            downPressed = false;
-            addInput(direction.down);
+        if (e.keyCode === this.DOWN_KEY) {
+            this.downPressed = false;
+            this.addInput(this.direction.down);
 
-            if (forwardPressed) addInput(direction.downForward);
+            if (this.forwardPressed) this.addInput(this.direction.downForward);
         }
 
-        if (e.keyCode === UP_KEY) {
-            upPressed = false;
-            addInput(direction.up);
+        if (e.keyCode === this.UP_KEY) {
+            this.upPressed = false;
+            this.addInput(this.direction.up);
 
-            if (forwardPressed) addInput(direction.upForward);
+            if (this.forwardPressed) this.addInput(this.direction.upForward);
         }
 
-        if (e.keyCode === BACK_KEY) {
-            backPressed = false;
-            backChargeEndAt = frameCount;
+        if (e.keyCode === this.BACK_KEY) {
+            this.backPressed = false;
+            this.backChargeEndAt = this.frameCount;
             //console.log("back charged for = ", backChargeEndAt - backChargeStartAt);
-            addInput(direction.back);
+            this.addInput(this.direction.back);
 
-            if (downPressed) addInput(direction.downForward);
+            if (this.downPressed) this.addInput(this.direction.downForward);
         }
 
-        if (e.keyCode === FORWARD_KEY) {
-            forwardPressed = false;
-            addInput(direction.forward);
+        if (e.keyCode === this.FORWARD_KEY) {
+            this.forwardPressed = false;
+            this.addInput(this.direction.forward);
 
-            if (downPressed) addInput(direction.downForward);
-            if (upPressed) addInput(direction.upForward);
+            if (this.downPressed) this.addInput(this.direction.downForward);
+            if (this.upPressed) this.addInput(this.direction.upForward);
         }
 
         // only add attack keys on key up
         // TODO: find out how to handle negative edge
-        if (e.keyCode === JAB_KEY) {
-            addInput(direction.jab);
+        if (e.keyCode === this.JAB_KEY) {
+            this.addInput(this.direction.jab);
         }
     }
 
@@ -105,15 +111,15 @@ import { IDirections, IDirection, IInput } from "./model";
      * 
      * @param direction Indicate which direction to add
      */
-    var addInput = (direction: IDirection) => {
+    public addInput(direction: IDirection){
         // update buffer
-        inputBuffer.push({ notation: direction.notation, frame: frameCount });
+        this.inputBuffer.push({ notation: direction.notation, frame: this.frameCount });
 
         // check for special moves
-        checkBuffer();
+        this.checkBuffer();
 
         // update UI
-        drawInput(direction.alias);
+        this.drawInput(direction.alias);
     }
 
     /**
@@ -121,31 +127,35 @@ import { IDirections, IDirection, IInput } from "./model";
      * 
      * @param directionName Indicate which direction to draw
      */
-    var drawInput = (directionName: string) => {
+    public drawInput(directionName: string) {
         var node = document.createElement("div");
         node.className = "icon " + directionName;
 
-        container.appendChild(node);
+        if (this.container !== null) {
+            this.container.appendChild(node);
+        }
     }
 
     /**
      * Iterate over the input buffer and look for special moves
      */
-    var checkBuffer = () => {
-        for (var i = 0; i < inputBuffer.length; i++) {
-            checkForFireball(i);
-            checkForSonicBoom(i);
-            checkForHundredHandSlap(i);
+    public checkBuffer() {
+        for (var i = 0; i < this.inputBuffer.length; i++) {
+            this.checkForFireball(i);
+            this.checkForSonicBoom(i);
+            this.checkForHundredHandSlap(i);
         }
     }
 
     /**
      * Reset the input buffer and clear the visual representation from the DOM
      */
-    var flushBuffer = () => {
-        inputBuffer = [];
-        while (container.firstChild) {
-            container.removeChild(container.firstChild);
+    public flushBuffer = () => {
+        this.inputBuffer = [];
+        if (this.container !== null) {
+            while (this.container.firstChild) {
+                this.container.removeChild(this.container.firstChild);
+            }
         }
     }
 
@@ -161,20 +171,23 @@ import { IDirections, IDirection, IInput } from "./model";
      *
      * @param i Indicates the index of the input buffer
      */
-    var checkForFireball = (i: number) => {
+    public checkForFireball(i: number) {
         // check for 4 input special moves 
-        if (i + 3 < inputBuffer.length) {
-
-            if (inputBuffer[i].notation === direction.down.notation &&
-                inputBuffer[i + 1].notation === direction.downForward.notation && (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 6 &&
-                inputBuffer[i + 2].notation === direction.forward.notation && (inputBuffer[i + 2].frame - inputBuffer[i + 1].frame) <= 6 &&
-                inputBuffer[i + 3].notation === direction.jab.notation && (inputBuffer[i + 3].frame - inputBuffer[i + 2].frame) <= 6) {
+        if (i + 3 < this.inputBuffer.length) {
+            if (this.inputBuffer[i].notation === this.direction.down.notation &&
+                this.inputBuffer[i + 1].notation === this.direction.downForward.notation && 
+                (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 6 &&
+                this.inputBuffer[i + 2].notation === this.direction.forward.notation && 
+                (this.inputBuffer[i + 2].frame - this.inputBuffer[i + 1].frame) <= 6 &&
+                this.inputBuffer[i + 3].notation === this.direction.jab.notation && 
+                (this.inputBuffer[i + 3].frame - this.inputBuffer[i + 2].frame) <= 6) {
                 console.log('(Jab) Hadoken!');
-                flushBuffer();
+                this.specialMoves.push('(Jab) Hadoken!');
+                this.flushBuffer();
             }
         }
     }
-    
+
     /**
      * To produce the jab sonic boom:
      * 1. The first input must be back AND
@@ -187,18 +200,18 @@ import { IDirections, IDirection, IInput } from "./model";
      *
      * @param i Indicates the index of the input buffer
      */
-    var checkForSonicBoom = (i: number) => {
+    public checkForSonicBoom(i: number) {
         // check for charge special moves
-        if (i + 1 < inputBuffer.length) {
-           
-            if (backChargeEndAt - backChargeStartAt >= fps &&
-                inputBuffer[i].notation === direction.forward.notation &&
-                inputBuffer[i].frame - backChargeEndAt > 0 && // wait at least 1 frame after charging 
-                inputBuffer[i].frame - backChargeEndAt <= 7 && // but no more than 7 frames
-                inputBuffer[i + 1].notation === direction.jab.notation &&
-                (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 11) { // 11 frame window for jab sonic boom
+        if (i + 1 < this.inputBuffer.length) {
+
+            if (this.backChargeEndAt - this.backChargeStartAt >= this.fps &&
+                this. inputBuffer[i].notation === this.direction.forward.notation &&
+                this.inputBuffer[i].frame - this.backChargeEndAt > 0 && // wait at least 1 frame after charging 
+                this.inputBuffer[i].frame - this.backChargeEndAt <= 7 && // but no more than 7 frames
+                this.inputBuffer[i + 1].notation === this.direction.jab.notation &&
+                (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 11) { // 11 frame window for jab sonic boom
                 console.log('(Jab) sonic boom!');
-                flushBuffer();
+                this.flushBuffer();
             }
         }
     }
@@ -215,25 +228,25 @@ import { IDirections, IDirection, IInput } from "./model";
      * 
      * @param i Indicates the index of the input buffer
      */
-    var checkForHundredHandSlap = (i: number) => {
+    public checkForHundredHandSlap(i: number) {
         // check for rapid fire special moves
-        if (i + 4 < inputBuffer.length) {
-            
-            if (inputBuffer[i].notation === direction.jab.notation &&
-                inputBuffer[i + 1].notation === direction.jab.notation &&
-                (inputBuffer[i + 1].frame - inputBuffer[i].frame) <= 11 &&
-                inputBuffer[i + 2].notation === direction.jab.notation &&
-                (inputBuffer[i + 2].frame - inputBuffer[i + 1].frame) <= 11 &&
-                inputBuffer[i + 3].notation === direction.jab.notation &&
-                (inputBuffer[i + 3].frame - inputBuffer[i + 2].frame) <= 11 &&
-                inputBuffer[i + 4].notation === direction.jab.notation &&
-                (inputBuffer[i + 4].frame - inputBuffer[i + 3].frame) <= 11) {
+        if (i + 4 < this.inputBuffer.length) {
+
+            if (this.inputBuffer[i].notation === this.direction.jab.notation &&
+                this.inputBuffer[i + 1].notation === this.direction.jab.notation &&
+                (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 11 &&
+                this.inputBuffer[i + 2].notation === this.direction.jab.notation &&
+                (this.inputBuffer[i + 2].frame - this.inputBuffer[i + 1].frame) <= 11 &&
+                this.inputBuffer[i + 3].notation === this.direction.jab.notation &&
+                (this.inputBuffer[i + 3].frame - this.inputBuffer[i + 2].frame) <= 11 &&
+                this.inputBuffer[i + 4].notation === this.direction.jab.notation &&
+                (this.inputBuffer[i + 4].frame - this.inputBuffer[i + 3].frame) <= 11) {
                 console.log('(Jab) Hundred Hand Slap!');
-                flushBuffer();
+                this.flushBuffer();
             }
         }
     }
+}
 
-    // increment framecount every 1/60th of a second (assuming 60fps)
-    setInterval(() => { frameCount++; }, 1000 / fps);
-})()
+// initialise super circle buffer
+let superCircleBuffer = new SuperCircleBuffer();

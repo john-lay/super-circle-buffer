@@ -1,1 +1,5 @@
 scripts/*.js
+test/spec/SuperCircleBufferSpec.js
+node_modules/@types/jasmine/LICENSE
+node_modules/@types/jasmine/README.md
+node_modules/@types/jasmine/index.d.ts
