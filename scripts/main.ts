@@ -26,6 +26,7 @@ export class SuperCircleBuffer {
     // using japanese street fighter notation for direction
     // https://sonichurricane.com/articles/sfnotation.html
     readonly direction: IDirections = {
+        downBack: { alias: 'dl', notation: 1 },
         down: { alias: 'd', notation: 2 },
         downForward: { alias: 'dr', notation: 3 },
         back: { alias: 'l', notation: 4 },
@@ -71,6 +72,7 @@ export class SuperCircleBuffer {
             this.downPressed = false;
             this.addInput(this.direction.down);
 
+            if (this.backPressed) this.addInput(this.direction.downBack);
             if (this.forwardPressed) this.addInput(this.direction.downForward);
         }
 
@@ -87,7 +89,7 @@ export class SuperCircleBuffer {
             //console.log("back charged for = ", backChargeEndAt - backChargeStartAt);
             this.addInput(this.direction.back);
 
-            if (this.downPressed) this.addInput(this.direction.downForward);
+            if (this.downPressed) this.addInput(this.direction.downBack);
         }
 
         if (e.keyCode === this.FORWARD_KEY) {
