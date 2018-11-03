@@ -9,6 +9,7 @@ export interface IDirections {
     downForward: IDirection,
     back: IDirection,
     forward: IDirection,
+    upBack: IDirection,
     up: IDirection,
     upForward: IDirection,
 

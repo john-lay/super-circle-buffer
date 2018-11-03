@@ -31,6 +31,7 @@ export class SuperCircleBuffer {
         downForward: { alias: 'dr', notation: 3 },
         back: { alias: 'l', notation: 4 },
         forward: { alias: 'r', notation: 6 },
+        upBack: { alias: 'ul', notation: 7 },
         up: { alias: 'u', notation: 8 },
         upForward: { alias: 'ur', notation: 9 },
 
@@ -80,6 +81,7 @@ export class SuperCircleBuffer {
             this.upPressed = false;
             this.addInput(this.direction.up);
 
+            if (this.backPressed) this.addInput(this.direction.upBack);
             if (this.forwardPressed) this.addInput(this.direction.upForward);
         }
 
@@ -90,6 +92,7 @@ export class SuperCircleBuffer {
             this.addInput(this.direction.back);
 
             if (this.downPressed) this.addInput(this.direction.downBack);
+            if (this.upPressed) this.addInput(this.direction.upBack);
         }
 
         if (e.keyCode === this.FORWARD_KEY) {
