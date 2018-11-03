@@ -25,7 +25,7 @@ describe("SuperCircleBuffer", () => {
 
             // Act
             superCircleBuffer.addInput(superCircleBuffer.direction.down);
-            superCircleBuffer.addInput(superCircleBuffer.direction.downForward);
+            superCircleBuffer.addInput(superCircleBuffer.direction.downToward);
             superCircleBuffer.addInput(superCircleBuffer.direction.forward);
             superCircleBuffer.addInput(superCircleBuffer.direction.jab);
 

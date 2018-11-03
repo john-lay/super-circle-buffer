@@ -18,6 +18,10 @@ export class SuperCircleBuffer {
     readonly STRONG_KEY = 101;
     readonly FIERCE_KEY = 102;
 
+    readonly SHORT_KEY = 97;
+    readonly FORWARD_KEY = 98;
+    readonly ROUNDHOUSE_KEY = 99;
+
     inputBuffer: IInput[] = [];
     specialMoves: String[] = [];
     container: HTMLElement = document.getElementById("Container");
@@ -39,7 +43,10 @@ export class SuperCircleBuffer {
 
         jab: { alias: 'lp', notation: 0xA, name: 'jab' },
         strong: { alias: 'mp', notation: 0xB, name: 'strong' },
-        fierce: { alias: 'hp', notation: 0xC, name: 'fierce' }
+        fierce: { alias: 'hp', notation: 0xC, name: 'fierce' },
+        short: { alias: 'lk', notation: 0xD, name: 'short' },
+        forward: { alias: 'mk', notation: 0xE, name: 'forward' },
+        roundhouse: { alias: 'hk', notation: 0xF, name: 'roundhouse' }
     }
 
     constructor() {
@@ -109,17 +116,13 @@ export class SuperCircleBuffer {
 
         // only add attack keys on key up
         // TODO: find out how to handle negative edge
-        if (e.keyCode === this.JAB_KEY) {
-            this.addInput(this.direction.jab);
-        }
+        if (e.keyCode === this.JAB_KEY) this.addInput(this.direction.jab);
+        if (e.keyCode === this.STRONG_KEY) this.addInput(this.direction.strong);
+        if (e.keyCode === this.FIERCE_KEY)this.addInput(this.direction.fierce);        
 
-        if (e.keyCode === this.STRONG_KEY) {
-            this.addInput(this.direction.strong);
-        }
-
-        if (e.keyCode === this.FIERCE_KEY) {
-            this.addInput(this.direction.fierce);
-        }
+        if (e.keyCode === this.SHORT_KEY)this.addInput(this.direction.short);
+        if (e.keyCode === this.FORWARD_KEY)this.addInput(this.direction.forward);
+        if (e.keyCode === this.ROUNDHOUSE_KEY)this.addInput(this.direction.roundhouse);        
     }
 
     /**

@@ -16,7 +16,10 @@ export interface IDirections {
 
     jab: IDirection,
     strong: IDirection,
-    fierce: IDirection
+    fierce: IDirection,
+    short: IDirection,
+    forward: IDirection,
+    roundhouse: IDirection
 }
 
 export interface IInput {
