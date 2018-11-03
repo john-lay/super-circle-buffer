@@ -7,12 +7,12 @@ export interface IDirection {
 export interface IDirections {
     downBack: IDirection,
     down: IDirection,
-    downForward: IDirection,
+    downToward: IDirection,
     back: IDirection,
-    forward: IDirection,
+    toward: IDirection,
     upBack: IDirection,
     up: IDirection,
-    upForward: IDirection,
+    upToward: IDirection,
 
     jab: IDirection,
     strong: IDirection,

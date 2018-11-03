@@ -5,13 +5,13 @@ export class SuperCircleBuffer {
     frameCount = 0;
 
     backPressed = false;
-    forwardPressed = false;
+    towardPressed = false;
     downPressed = false;
     upPressed = false;
 
     readonly BACK_KEY = 37;
     readonly UP_KEY = 38;
-    readonly FORWARD_KEY = 39;
+    readonly TOWARD_KEY = 39;
     readonly DOWN_KEY = 40;
 
     readonly JAB_KEY = 100;
@@ -30,12 +30,12 @@ export class SuperCircleBuffer {
     readonly direction: IDirections = {
         downBack: { alias: 'dl', notation: 0x1, name: 'down-back' },
         down: { alias: 'd', notation: 0x2, name: 'down' },
-        downForward: { alias: 'dr', notation: 0x3, name: 'down-forward' },
+        downToward: { alias: 'dr', notation: 0x3, name: 'down-toward' },
         back: { alias: 'l', notation: 0x4, name: 'back' },
-        forward: { alias: 'r', notation: 0x6, name: 'forward' },
+        toward: { alias: 'r', notation: 0x6, name: 'toward' },
         upBack: { alias: 'ul', notation: 0x7, name: 'up-back' },
         up: { alias: 'u', notation: 0x8, name: 'up' },
-        upForward: { alias: 'ur', notation: 0x9, name: 'up-forward' },
+        upToward: { alias: 'ur', notation: 0x9, name: 'up-toward' },
 
         jab: { alias: 'lp', notation: 0xA, name: 'jab' },
         strong: { alias: 'mp', notation: 0xB, name: 'strong' },
@@ -56,8 +56,8 @@ export class SuperCircleBuffer {
             this.backChargeStartAt = this.frameCount;
         }
 
-        if (e.keyCode === this.FORWARD_KEY && !this.forwardPressed) {
-            this.forwardPressed = true;
+        if (e.keyCode === this.TOWARD_KEY && !this.towardPressed) {
+            this.towardPressed = true;
         }
 
         if (e.keyCode === this.DOWN_KEY && !this.downPressed) {
@@ -78,7 +78,7 @@ export class SuperCircleBuffer {
             this.addInput(this.direction.down);
 
             if (this.backPressed) this.addInput(this.direction.downBack);
-            if (this.forwardPressed) this.addInput(this.direction.downForward);
+            if (this.towardPressed) this.addInput(this.direction.downToward);
         }
 
         if (e.keyCode === this.UP_KEY) {
@@ -86,7 +86,7 @@ export class SuperCircleBuffer {
             this.addInput(this.direction.up);
 
             if (this.backPressed) this.addInput(this.direction.upBack);
-            if (this.forwardPressed) this.addInput(this.direction.upForward);
+            if (this.towardPressed) this.addInput(this.direction.upToward);
         }
 
         if (e.keyCode === this.BACK_KEY) {
@@ -99,12 +99,12 @@ export class SuperCircleBuffer {
             if (this.upPressed) this.addInput(this.direction.upBack);
         }
 
-        if (e.keyCode === this.FORWARD_KEY) {
-            this.forwardPressed = false;
-            this.addInput(this.direction.forward);
+        if (e.keyCode === this.TOWARD_KEY) {
+            this.towardPressed = false;
+            this.addInput(this.direction.toward);
 
-            if (this.downPressed) this.addInput(this.direction.downForward);
-            if (this.upPressed) this.addInput(this.direction.upForward);
+            if (this.downPressed) this.addInput(this.direction.downToward);
+            if (this.upPressed) this.addInput(this.direction.upToward);
         }
 
         // only add attack keys on key up
@@ -179,12 +179,12 @@ export class SuperCircleBuffer {
     /**
      * To produce the jab hadoken:
      * 1. The first input must be down AND
-     * 2. The second input must be down-forwards AND down-forwards must be pressed 
+     * 2. The second input must be down-towards AND down-towards must be pressed 
      *    within 6 frames of down AND
-     * 3. The third input must be forwards AND forwards must be pressed within 6 
-     *    frames of down-forwards AND
+     * 3. The third input must be towards AND towards must be pressed within 6 
+     *    frames of down-towards AND
      * 4. The fourth input must be jab AND jab must be pressed within 6 frames 
-     *    of forwards
+     *    of towards
      *
      * @param i Indicates the index of the input buffer
      */
@@ -192,9 +192,9 @@ export class SuperCircleBuffer {
         // check for 4 input special moves 
         if (i + 3 < this.inputBuffer.length) {
             if (this.inputBuffer[i].notation === this.direction.down.notation &&
-                this.inputBuffer[i + 1].notation === this.direction.downForward.notation &&
+                this.inputBuffer[i + 1].notation === this.direction.downToward.notation &&
                 (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 6 &&
-                this.inputBuffer[i + 2].notation === this.direction.forward.notation &&
+                this.inputBuffer[i + 2].notation === this.direction.toward.notation &&
                 (this.inputBuffer[i + 2].frame - this.inputBuffer[i + 1].frame) <= 6 &&
                 this.checkForPunch(this.inputBuffer[i + 3].notation) &&
                 (this.inputBuffer[i + 3].frame - this.inputBuffer[i + 2].frame) <= 6) {
@@ -211,9 +211,9 @@ export class SuperCircleBuffer {
      * 2. The time between holding and releasing back must be at least 1 second. 
      *    As we set fps (to 60), this can be used as our unit representing a second AND
      * 3. There must be at least 1 frame and no more than 7 (inclusive) frames between 
-     *    the back being released and the forward input AND
-     * 4. The first input after the forwards must be a jab AND jab must be pressed
-     *    within 6 frames of forwards
+     *    the back being released and the toward input AND
+     * 4. The first input after the towards must be a jab AND jab must be pressed
+     *    within 6 frames of towards
      *
      * @param i Indicates the index of the input buffer
      */
@@ -222,7 +222,7 @@ export class SuperCircleBuffer {
         if (i + 1 < this.inputBuffer.length) {
 
             if (this.backChargeEndAt - this.backChargeStartAt >= this.fps &&
-                this.inputBuffer[i].notation === this.direction.forward.notation &&
+                this.inputBuffer[i].notation === this.direction.toward.notation &&
                 this.inputBuffer[i].frame - this.backChargeEndAt > 0 && // wait at least 1 frame after charging 
                 this.inputBuffer[i].frame - this.backChargeEndAt <= 7 && // but no more than 7 frames
                 this.checkForPunch(this.inputBuffer[i + 1].notation) &&
