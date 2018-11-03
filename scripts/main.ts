@@ -118,11 +118,11 @@ export class SuperCircleBuffer {
         // TODO: find out how to handle negative edge
         if (e.keyCode === this.JAB_KEY) this.addInput(this.direction.jab);
         if (e.keyCode === this.STRONG_KEY) this.addInput(this.direction.strong);
-        if (e.keyCode === this.FIERCE_KEY)this.addInput(this.direction.fierce);        
+        if (e.keyCode === this.FIERCE_KEY) this.addInput(this.direction.fierce);
 
-        if (e.keyCode === this.SHORT_KEY)this.addInput(this.direction.short);
-        if (e.keyCode === this.FORWARD_KEY)this.addInput(this.direction.forward);
-        if (e.keyCode === this.ROUNDHOUSE_KEY)this.addInput(this.direction.roundhouse);        
+        if (e.keyCode === this.SHORT_KEY) this.addInput(this.direction.short);
+        if (e.keyCode === this.FORWARD_KEY) this.addInput(this.direction.forward);
+        if (e.keyCode === this.ROUNDHOUSE_KEY) this.addInput(this.direction.roundhouse);
     }
 
     /**
@@ -262,7 +262,7 @@ export class SuperCircleBuffer {
                 this.checkForPunch(this.inputBuffer[i + 4].notation) &&
                 (this.inputBuffer[i + 4].frame - this.inputBuffer[i + 3].frame) <= 11) {
                 console.log(`(${this.punchStrength(this.inputBuffer[i + 4].notation)}) Hundred Hand Slap!`);
-                
+
                 this.flushBuffer();
             }
         }
@@ -286,7 +286,31 @@ export class SuperCircleBuffer {
                 return this.direction.strong.name;
             case this.direction.fierce.notation:
                 return this.direction.fierce.name;
-            default: return ''
+            default:
+                return '';
+        }
+    }
+
+    private checkForKick(notation: number): boolean {
+        if (notation === this.direction.short.notation ||
+            notation === this.direction.forward.notation ||
+            notation === this.direction.roundhouse.notation) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private kickStrength(notation: number): string {
+        switch (notation) {
+            case this.direction.short.notation:
+                return this.direction.short.name;
+            case this.direction.forward.notation:
+                return this.direction.forward.name;
+            case this.direction.roundhouse.notation:
+                return this.direction.roundhouse.name;
+            default:
+                return '';
         }
     }
 }
