@@ -1,6 +1,7 @@
 export interface IDirection {
     alias: string;
     notation: number;
+    name: string;
 }
 
 export interface IDirections {
@@ -13,7 +14,9 @@ export interface IDirections {
     up: IDirection,
     upForward: IDirection,
 
-    jab: IDirection
+    jab: IDirection,
+    strong: IDirection,
+    fierce: IDirection
 }
 
 export interface IInput {

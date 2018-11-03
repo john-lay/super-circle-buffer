@@ -15,6 +15,8 @@ export class SuperCircleBuffer {
     readonly DOWN_KEY = 40;
 
     readonly JAB_KEY = 100;
+    readonly STRONG_KEY = 101;
+    readonly FIERCE_KEY = 102;
 
     inputBuffer: IInput[] = [];
     specialMoves: String[] = [];
@@ -26,16 +28,18 @@ export class SuperCircleBuffer {
     // using japanese street fighter notation for direction
     // https://sonichurricane.com/articles/sfnotation.html
     readonly direction: IDirections = {
-        downBack: { alias: 'dl', notation: 1 },
-        down: { alias: 'd', notation: 2 },
-        downForward: { alias: 'dr', notation: 3 },
-        back: { alias: 'l', notation: 4 },
-        forward: { alias: 'r', notation: 6 },
-        upBack: { alias: 'ul', notation: 7 },
-        up: { alias: 'u', notation: 8 },
-        upForward: { alias: 'ur', notation: 9 },
+        downBack: { alias: 'dl', notation: 0x1, name: 'down-back' },
+        down: { alias: 'd', notation: 0x2, name: 'down' },
+        downForward: { alias: 'dr', notation: 0x3, name: 'down-forward' },
+        back: { alias: 'l', notation: 0x4, name: 'back' },
+        forward: { alias: 'r', notation: 0x6, name: 'forward' },
+        upBack: { alias: 'ul', notation: 0x7, name: 'up-back' },
+        up: { alias: 'u', notation: 0x8, name: 'up' },
+        upForward: { alias: 'ur', notation: 0x9, name: 'up-forward' },
 
-        jab: { alias: 'lp', notation: 10 }
+        jab: { alias: 'lp', notation: 0xA, name: 'jab' },
+        strong: { alias: 'mp', notation: 0xB, name: 'strong' },
+        fierce: { alias: 'hp', notation: 0xC, name: 'fierce' }
     }
 
     constructor() {
@@ -108,6 +112,14 @@ export class SuperCircleBuffer {
         if (e.keyCode === this.JAB_KEY) {
             this.addInput(this.direction.jab);
         }
+
+        if (e.keyCode === this.STRONG_KEY) {
+            this.addInput(this.direction.strong);
+        }
+
+        if (e.keyCode === this.FIERCE_KEY) {
+            this.addInput(this.direction.fierce);
+        }
     }
 
     /**
@@ -116,7 +128,7 @@ export class SuperCircleBuffer {
      * 
      * @param direction Indicate which direction to add
      */
-    public addInput(direction: IDirection){
+    public addInput(direction: IDirection) {
         // update buffer
         this.inputBuffer.push({ notation: direction.notation, frame: this.frameCount });
 
@@ -180,14 +192,14 @@ export class SuperCircleBuffer {
         // check for 4 input special moves 
         if (i + 3 < this.inputBuffer.length) {
             if (this.inputBuffer[i].notation === this.direction.down.notation &&
-                this.inputBuffer[i + 1].notation === this.direction.downForward.notation && 
+                this.inputBuffer[i + 1].notation === this.direction.downForward.notation &&
                 (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 6 &&
-                this.inputBuffer[i + 2].notation === this.direction.forward.notation && 
+                this.inputBuffer[i + 2].notation === this.direction.forward.notation &&
                 (this.inputBuffer[i + 2].frame - this.inputBuffer[i + 1].frame) <= 6 &&
-                this.inputBuffer[i + 3].notation === this.direction.jab.notation && 
+                this.checkForPunch(this.inputBuffer[i + 3].notation) &&
                 (this.inputBuffer[i + 3].frame - this.inputBuffer[i + 2].frame) <= 6) {
-                console.log('(Jab) Hadoken!');
-                this.specialMoves.push('(Jab) Hadoken!');
+                console.log(`(${this.punchStrength(this.inputBuffer[i + 3].notation)}) Hadoken!`);
+                this.specialMoves.push(`(${this.punchStrength(this.inputBuffer[i + 3].notation)}) Hadoken!`);
                 this.flushBuffer();
             }
         }
@@ -210,12 +222,12 @@ export class SuperCircleBuffer {
         if (i + 1 < this.inputBuffer.length) {
 
             if (this.backChargeEndAt - this.backChargeStartAt >= this.fps &&
-                this. inputBuffer[i].notation === this.direction.forward.notation &&
+                this.inputBuffer[i].notation === this.direction.forward.notation &&
                 this.inputBuffer[i].frame - this.backChargeEndAt > 0 && // wait at least 1 frame after charging 
                 this.inputBuffer[i].frame - this.backChargeEndAt <= 7 && // but no more than 7 frames
-                this.inputBuffer[i + 1].notation === this.direction.jab.notation &&
+                this.checkForPunch(this.inputBuffer[i + 1].notation) &&
                 (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 11) { // 11 frame window for jab sonic boom
-                console.log('(Jab) sonic boom!');
+                console.log(`(${this.punchStrength(this.inputBuffer[i + 1].notation)}) sonic boom!`);
                 this.flushBuffer();
             }
         }
@@ -237,18 +249,41 @@ export class SuperCircleBuffer {
         // check for rapid fire special moves
         if (i + 4 < this.inputBuffer.length) {
 
-            if (this.inputBuffer[i].notation === this.direction.jab.notation &&
-                this.inputBuffer[i + 1].notation === this.direction.jab.notation &&
+            if (this.checkForPunch(this.inputBuffer[i].notation) &&
+                this.checkForPunch(this.inputBuffer[i + 1].notation) &&
                 (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 11 &&
-                this.inputBuffer[i + 2].notation === this.direction.jab.notation &&
+                this.checkForPunch(this.inputBuffer[i + 2].notation) &&
                 (this.inputBuffer[i + 2].frame - this.inputBuffer[i + 1].frame) <= 11 &&
-                this.inputBuffer[i + 3].notation === this.direction.jab.notation &&
+                this.checkForPunch(this.inputBuffer[i + 3].notation) &&
                 (this.inputBuffer[i + 3].frame - this.inputBuffer[i + 2].frame) <= 11 &&
-                this.inputBuffer[i + 4].notation === this.direction.jab.notation &&
+                this.checkForPunch(this.inputBuffer[i + 4].notation) &&
                 (this.inputBuffer[i + 4].frame - this.inputBuffer[i + 3].frame) <= 11) {
-                console.log('(Jab) Hundred Hand Slap!');
+                console.log(`(${this.punchStrength(this.inputBuffer[i + 4].notation)}) Hundred Hand Slap!`);
+                
                 this.flushBuffer();
             }
+        }
+    }
+
+    private checkForPunch(notation: number): boolean {
+        if (notation === this.direction.jab.notation ||
+            notation === this.direction.strong.notation ||
+            notation === this.direction.fierce.notation) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private punchStrength(notation: number): string {
+        switch (notation) {
+            case this.direction.jab.notation:
+                return this.direction.jab.name;
+            case this.direction.strong.notation:
+                return this.direction.strong.name;
+            case this.direction.fierce.notation:
+                return this.direction.fierce.name;
+            default: return ''
         }
     }
 }
