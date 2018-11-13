@@ -1,10 +1,10 @@
-export interface IDirection {
+interface IDirection {
     alias: string;
     notation: number;
     name: string;
 }
 
-export interface IDirections {
+interface IDirections {
     downBack: IDirection,
     down: IDirection,
     downToward: IDirection,
@@ -22,7 +22,7 @@ export interface IDirections {
     roundhouse: IDirection
 }
 
-export interface IInput {
+interface IInput {
     notation: number;
     frame: number;
 }

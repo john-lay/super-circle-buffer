@@ -1,7 +1,6 @@
-import { } from 'jasmine';
-import { SuperCircleBuffer } from "../../scripts/main";
-
-declare var superCircleBuffer: SuperCircleBuffer;
+/// <reference path="../../scripts/main.ts" />
+/// <reference path="../../scripts/direction.ts" />
+/// <reference path="../lib/jasmine-3.2.1/jasmine.d.ts" />
 
 describe("SuperCircleBuffer", () => {
     beforeEach(() => {
@@ -24,10 +23,10 @@ describe("SuperCircleBuffer", () => {
             // Arrange
 
             // Act
-            superCircleBuffer.addInput(superCircleBuffer.direction.down);
-            superCircleBuffer.addInput(superCircleBuffer.direction.downToward);
-            superCircleBuffer.addInput(superCircleBuffer.direction.forward);
-            superCircleBuffer.addInput(superCircleBuffer.direction.jab);
+            superCircleBuffer.addInput(direction.down);
+            superCircleBuffer.addInput(direction.downToward);
+            superCircleBuffer.addInput(direction.forward);
+            superCircleBuffer.addInput(direction.jab);
 
             // Assert
             expect(superCircleBuffer.specialMoves.length).toEqual(1);

@@ -1,6 +1,9 @@
-import { IDirections, IDirection, IInput } from "./model";
+/// <reference path="model.ts" />
+/// <reference path="direction.ts" />
+/// <reference path="utility.ts" />
+/// <reference path="qcf+p.ts" />
 
-export class SuperCircleBuffer {
+class SuperCircleBuffer {
     fps = 60;
     frameCount = 0;
 
@@ -29,29 +32,15 @@ export class SuperCircleBuffer {
     backChargeStartAt = 0;
     backChargeEndAt = 0;
 
-    // using japanese street fighter notation for direction
-    // https://sonichurricane.com/articles/sfnotation.html
-    readonly direction: IDirections = {
-        downBack: { alias: 'dl', notation: 0x1, name: 'down-back' },
-        down: { alias: 'd', notation: 0x2, name: 'down' },
-        downToward: { alias: 'dr', notation: 0x3, name: 'down-toward' },
-        back: { alias: 'l', notation: 0x4, name: 'back' },
-        toward: { alias: 'r', notation: 0x6, name: 'toward' },
-        upBack: { alias: 'ul', notation: 0x7, name: 'up-back' },
-        up: { alias: 'u', notation: 0x8, name: 'up' },
-        upToward: { alias: 'ur', notation: 0x9, name: 'up-toward' },
-
-        jab: { alias: 'lp', notation: 0xA, name: 'jab' },
-        strong: { alias: 'mp', notation: 0xB, name: 'strong' },
-        fierce: { alias: 'hp', notation: 0xC, name: 'fierce' },
-        short: { alias: 'lk', notation: 0xD, name: 'short' },
-        forward: { alias: 'mk', notation: 0xE, name: 'forward' },
-        roundhouse: { alias: 'hk', notation: 0xF, name: 'roundhouse' }
-    }
+    utility: Utility;
+    fireball: Fireball;
 
     constructor() {
         // increment framecount every 1/60th of a second (assuming 60fps)
         setInterval(() => { this.frameCount++; }, 1000 / this.fps);
+
+        this.utility = new Utility;
+        this.fireball = new Fireball;
     }
 
     keyup = document.onkeydown = (e) => {
@@ -82,47 +71,47 @@ export class SuperCircleBuffer {
 
         if (e.keyCode === this.DOWN_KEY) {
             this.downPressed = false;
-            this.addInput(this.direction.down);
+            this.addInput(direction.down);
 
-            if (this.backPressed) this.addInput(this.direction.downBack);
-            if (this.towardPressed) this.addInput(this.direction.downToward);
+            if (this.backPressed) this.addInput(direction.downBack);
+            if (this.towardPressed) this.addInput(direction.downToward);
         }
 
         if (e.keyCode === this.UP_KEY) {
             this.upPressed = false;
-            this.addInput(this.direction.up);
+            this.addInput(direction.up);
 
-            if (this.backPressed) this.addInput(this.direction.upBack);
-            if (this.towardPressed) this.addInput(this.direction.upToward);
+            if (this.backPressed) this.addInput(direction.upBack);
+            if (this.towardPressed) this.addInput(direction.upToward);
         }
 
         if (e.keyCode === this.BACK_KEY) {
             this.backPressed = false;
             this.backChargeEndAt = this.frameCount;
             //console.log("back charged for = ", backChargeEndAt - backChargeStartAt);
-            this.addInput(this.direction.back);
+            this.addInput(direction.back);
 
-            if (this.downPressed) this.addInput(this.direction.downBack);
-            if (this.upPressed) this.addInput(this.direction.upBack);
+            if (this.downPressed) this.addInput(direction.downBack);
+            if (this.upPressed) this.addInput(direction.upBack);
         }
 
         if (e.keyCode === this.TOWARD_KEY) {
             this.towardPressed = false;
-            this.addInput(this.direction.toward);
+            this.addInput(direction.toward);
 
-            if (this.downPressed) this.addInput(this.direction.downToward);
-            if (this.upPressed) this.addInput(this.direction.upToward);
+            if (this.downPressed) this.addInput(direction.downToward);
+            if (this.upPressed) this.addInput(direction.upToward);
         }
 
         // only add attack keys on key up
         // TODO: find out how to handle negative edge
-        if (e.keyCode === this.JAB_KEY) this.addInput(this.direction.jab);
-        if (e.keyCode === this.STRONG_KEY) this.addInput(this.direction.strong);
-        if (e.keyCode === this.FIERCE_KEY) this.addInput(this.direction.fierce);
+        if (e.keyCode === this.JAB_KEY) this.addInput(direction.jab);
+        if (e.keyCode === this.STRONG_KEY) this.addInput(direction.strong);
+        if (e.keyCode === this.FIERCE_KEY) this.addInput(direction.fierce);
 
-        if (e.keyCode === this.SHORT_KEY) this.addInput(this.direction.short);
-        if (e.keyCode === this.FORWARD_KEY) this.addInput(this.direction.forward);
-        if (e.keyCode === this.ROUNDHOUSE_KEY) this.addInput(this.direction.roundhouse);
+        if (e.keyCode === this.SHORT_KEY) this.addInput(direction.short);
+        if (e.keyCode === this.FORWARD_KEY) this.addInput(direction.forward);
+        if (e.keyCode === this.ROUNDHOUSE_KEY) this.addInput(direction.roundhouse);
     }
 
     /**
@@ -160,8 +149,9 @@ export class SuperCircleBuffer {
      * Iterate over the input buffer and look for special moves
      */
     public checkBuffer() {
+        if(this.fireball.check(this.inputBuffer)) this.flushBuffer();
         for (var i = 0; i < this.inputBuffer.length; i++) {
-            this.checkForFireball(i);
+            //this.checkForFireball(i);
             this.checkForSonicBoom(i);
             this.checkForHundredHandSlap(i);
         }
@@ -194,15 +184,15 @@ export class SuperCircleBuffer {
     public checkForFireball(i: number) {
         // check for 4 input special moves 
         if (i + 3 < this.inputBuffer.length) {
-            if (this.inputBuffer[i].notation === this.direction.down.notation &&
-                this.inputBuffer[i + 1].notation === this.direction.downToward.notation &&
+            if (this.inputBuffer[i].notation === direction.down.notation &&
+                this.inputBuffer[i + 1].notation === direction.downToward.notation &&
                 (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 6 &&
-                this.inputBuffer[i + 2].notation === this.direction.toward.notation &&
+                this.inputBuffer[i + 2].notation === direction.toward.notation &&
                 (this.inputBuffer[i + 2].frame - this.inputBuffer[i + 1].frame) <= 6 &&
-                this.checkForPunch(this.inputBuffer[i + 3].notation) &&
+                this.utility.checkForPunch(this.inputBuffer[i + 3].notation) &&
                 (this.inputBuffer[i + 3].frame - this.inputBuffer[i + 2].frame) <= 6) {
-                console.log(`(${this.punchStrength(this.inputBuffer[i + 3].notation)}) Hadoken!`);
-                this.specialMoves.push(`(${this.punchStrength(this.inputBuffer[i + 3].notation)}) Hadoken!`);
+                console.log(`(${this.utility.punchStrength(this.inputBuffer[i + 3].notation)}) Hadoken!`);
+                this.specialMoves.push(`(${this.utility.punchStrength(this.inputBuffer[i + 3].notation)}) Hadoken!`);
                 this.flushBuffer();
             }
         }
@@ -225,12 +215,12 @@ export class SuperCircleBuffer {
         if (i + 1 < this.inputBuffer.length) {
 
             if (this.backChargeEndAt - this.backChargeStartAt >= this.fps &&
-                this.inputBuffer[i].notation === this.direction.toward.notation &&
+                this.inputBuffer[i].notation === direction.toward.notation &&
                 this.inputBuffer[i].frame - this.backChargeEndAt > 0 && // wait at least 1 frame after charging 
                 this.inputBuffer[i].frame - this.backChargeEndAt <= 7 && // but no more than 7 frames
-                this.checkForPunch(this.inputBuffer[i + 1].notation) &&
+                this.utility.checkForPunch(this.inputBuffer[i + 1].notation) &&
                 (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 11) { // 11 frame window for jab sonic boom
-                console.log(`(${this.punchStrength(this.inputBuffer[i + 1].notation)}) sonic boom!`);
+                console.log(`(${this.utility.punchStrength(this.inputBuffer[i + 1].notation)}) sonic boom!`);
                 this.flushBuffer();
             }
         }
@@ -252,65 +242,19 @@ export class SuperCircleBuffer {
         // check for rapid fire special moves
         if (i + 4 < this.inputBuffer.length) {
 
-            if (this.checkForPunch(this.inputBuffer[i].notation) &&
-                this.checkForPunch(this.inputBuffer[i + 1].notation) &&
+            if (this.utility.checkForPunch(this.inputBuffer[i].notation) &&
+                this.utility.checkForPunch(this.inputBuffer[i + 1].notation) &&
                 (this.inputBuffer[i + 1].frame - this.inputBuffer[i].frame) <= 11 &&
-                this.checkForPunch(this.inputBuffer[i + 2].notation) &&
+                this.utility.checkForPunch(this.inputBuffer[i + 2].notation) &&
                 (this.inputBuffer[i + 2].frame - this.inputBuffer[i + 1].frame) <= 11 &&
-                this.checkForPunch(this.inputBuffer[i + 3].notation) &&
+                this.utility.checkForPunch(this.inputBuffer[i + 3].notation) &&
                 (this.inputBuffer[i + 3].frame - this.inputBuffer[i + 2].frame) <= 11 &&
-                this.checkForPunch(this.inputBuffer[i + 4].notation) &&
+                this.utility.checkForPunch(this.inputBuffer[i + 4].notation) &&
                 (this.inputBuffer[i + 4].frame - this.inputBuffer[i + 3].frame) <= 11) {
-                console.log(`(${this.punchStrength(this.inputBuffer[i + 4].notation)}) Hundred Hand Slap!`);
+                console.log(`(${this.utility.punchStrength(this.inputBuffer[i + 4].notation)}) Hundred Hand Slap!`);
 
                 this.flushBuffer();
             }
-        }
-    }
-
-    private checkForPunch(notation: number): boolean {
-        if (notation === this.direction.jab.notation ||
-            notation === this.direction.strong.notation ||
-            notation === this.direction.fierce.notation) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private punchStrength(notation: number): string {
-        switch (notation) {
-            case this.direction.jab.notation:
-                return this.direction.jab.name;
-            case this.direction.strong.notation:
-                return this.direction.strong.name;
-            case this.direction.fierce.notation:
-                return this.direction.fierce.name;
-            default:
-                return '';
-        }
-    }
-
-    private checkForKick(notation: number): boolean {
-        if (notation === this.direction.short.notation ||
-            notation === this.direction.forward.notation ||
-            notation === this.direction.roundhouse.notation) {
-            return true;
-        }
-
-        return false;
-    }
-
-    private kickStrength(notation: number): string {
-        switch (notation) {
-            case this.direction.short.notation:
-                return this.direction.short.name;
-            case this.direction.forward.notation:
-                return this.direction.forward.name;
-            case this.direction.roundhouse.notation:
-                return this.direction.roundhouse.name;
-            default:
-                return '';
         }
     }
 }
